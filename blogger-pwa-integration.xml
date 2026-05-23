@@ -1,0 +1,185 @@
+<!--
+  GO Match — Progressive Web App (Blogger)
+  Paste into your Blogger theme (Theme → Edit HTML).
+
+  STEP 1 — <head>: paste block A immediately before </head>
+  STEP 2 — before </body>: paste block B immediately before </body>
+
+  GitHub Pages assets (push this repo to tarekk190/GO-Match-Blogger):
+  https://tarekk190.github.io/GO-Match-Blogger/manifest.json
+  https://tarekk190.github.io/GO-Match-Blogger/service-worker.js
+  https://tarekk190.github.io/GO-Match-Blogger/icons/icon-192.png
+  https://tarekk190.github.io/GO-Match-Blogger/icons/icon-512.png
+
+  After publishing, update manifest.json on GitHub: replace YOUR-BLOG.blogspot.com
+  with your real blog URL (same value as data:blog.homepageUrl in the theme editor preview).
+-->
+
+<!-- ========== BLOCK A — paste inside <head> ========== -->
+<b:if cond='data:blog.pageType == &quot;index&quot; or data:blog.pageType == &quot;main&quot; or data:blog.pageType == &quot;archive&quot; or data:blog.pageType == &quot;item&quot; or data:blog.pageType == &quot;static_page&quot; or data:blog.pageType == &quot;error_page&quot;'>
+
+  <meta name='theme-color' content='#241A78'/>
+  <meta name='color-scheme' content='dark light'/>
+  <meta name='mobile-web-app-capable' content='yes'/>
+  <meta name='application-name' content='GO Match'/>
+
+  <meta name='apple-mobile-web-app-capable' content='yes'/>
+  <meta name='apple-mobile-web-app-title' content='GO Match'/>
+  <meta name='apple-mobile-web-app-status-bar-style' content='black-translucent'/>
+
+  <meta name='msapplication-TileColor' content='#241A78'/>
+  <meta name='msapplication-TileImage' expr:content='&quot;https://tarekk190.github.io/GO-Match-Blogger/icons/icon-192.png&quot;'/>
+  <meta name='msapplication-config' content='none'/>
+
+  <link rel='icon' type='image/png' sizes='192x192' href='https://tarekk190.github.io/GO-Match-Blogger/icons/icon-192.png'/>
+  <link rel='icon' type='image/png' sizes='512x512' href='https://tarekk190.github.io/GO-Match-Blogger/icons/icon-512.png'/>
+  <link rel='apple-touch-icon' href='https://tarekk190.github.io/GO-Match-Blogger/icons/icon-192.png'/>
+  <link rel='apple-touch-icon' sizes='180x180' href='https://tarekk190.github.io/GO-Match-Blogger/icons/icon-192.png'/>
+  <link rel='apple-touch-icon' sizes='192x192' href='https://tarekk190.github.io/GO-Match-Blogger/icons/icon-192.png'/>
+  <link rel='apple-touch-icon' sizes='512x512' href='https://tarekk190.github.io/GO-Match-Blogger/icons/icon-512.png'/>
+
+  <!-- iOS splash (uses brand background + icon; Safari picks closest size) -->
+  <link rel='apple-touch-startup-image' media='(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)' href='https://tarekk190.github.io/GO-Match-Blogger/icons/icon-512.png'/>
+  <link rel='apple-touch-startup-image' media='(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)' href='https://tarekk190.github.io/GO-Match-Blogger/icons/icon-512.png'/>
+  <link rel='apple-touch-startup-image' media='(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)' href='https://tarekk190.github.io/GO-Match-Blogger/icons/icon-512.png'/>
+  <link rel='apple-touch-startup-image' media='(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)' href='https://tarekk190.github.io/GO-Match-Blogger/icons/icon-512.png'/>
+
+  <link rel='manifest' id='gomatch-manifest-fallback' href='https://tarekk190.github.io/GO-Match-Blogger/manifest.json'/>
+
+</b:if>
+<!-- ========== END BLOCK A ========== -->
+
+<!-- ========== BLOCK B — paste before </body> ========== -->
+<b:if cond='data:blog.pageType == &quot;index&quot; or data:blog.pageType == &quot;main&quot; or data:blog.pageType == &quot;archive&quot; or data:blog.pageType == &quot;item&quot; or data:blog.pageType == &quot;static_page&quot; or data:blog.pageType == &quot;error_page&quot;'>
+
+<script type='text/javascript'>
+//<![CDATA[
+(function () {
+  "use strict";
+
+  var PWA = {
+    assetsBase: "https://tarekk190.github.io/GO-Match-Blogger/",
+    themeColor: "#241A78",
+    cacheVersion: "gomatch-pwa-v2",
+    blogHome: "<data:blog.homepageUrl/>"
+  };
+
+  function trimSlash(url) {
+    return url ? String(url).replace(/\/+$/, "") + "/" : "/";
+  }
+
+  function injectManifest(manifest) {
+    var home = trimSlash(PWA.blogHome);
+    manifest.id = home;
+    manifest.scope = home;
+    manifest.start_url = home + "?utm_source=pwa";
+
+    var old = document.getElementById("gomatch-manifest-fallback");
+    if (old && old.parentNode) {
+      old.parentNode.removeChild(old);
+    }
+
+    var link = document.createElement("link");
+    link.id = "gomatch-manifest-dynamic";
+    link.rel = "manifest";
+    link.href =
+      "data:application/manifest+json," +
+      encodeURIComponent(JSON.stringify(manifest));
+    document.head.appendChild(link);
+  }
+
+  function loadManifest() {
+    var url = PWA.assetsBase + "manifest.json?v=" + PWA.cacheVersion;
+    return fetch(url, { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("manifest " + r.status);
+        return r.json();
+      })
+      .then(injectManifest)
+      .catch(function (err) {
+        console.warn("[GO Match PWA] manifest:", err);
+      });
+  }
+
+  function getServiceWorkerSource() {
+    return [
+      "var CACHE_VERSION='" + PWA.cacheVersion + "';",
+      "var PRECACHE=[",
+      "'" + PWA.assetsBase + "icons/icon-192.png',",
+      "'" + PWA.assetsBase + "icons/icon-512.png',",
+      "'" + PWA.assetsBase + "manifest.json'",
+      "];",
+      "self.addEventListener('install',function(e){",
+      "e.waitUntil(caches.open(CACHE_VERSION).then(function(c){return Promise.all(PRECACHE.map(function(u){return c.add(u).catch(function(){});}));}).then(function(){return self.skipWaiting();}));",
+      "});",
+      "self.addEventListener('activate',function(e){",
+      "e.waitUntil(caches.keys().then(function(keys){",
+      "return Promise.all(keys.filter(function(k){return k!==CACHE_VERSION;}).map(function(k){return caches.delete(k);}));",
+      "}).then(function(){return self.clients.claim();}));",
+      "});",
+      "self.addEventListener('fetch',function(e){",
+      "if(e.request.method!=='GET')return;",
+      "var u=new URL(e.request.url);",
+      "if(u.origin==='https://tarekk190.github.io'&&u.pathname.indexOf('/GO-Match-Blogger/')===0){",
+      "e.respondWith(caches.match(e.request).then(function(cached){",
+      "return cached||fetch(e.request).then(function(res){",
+      "if(res&&res.status===200){var copy=res.clone();caches.open(CACHE_VERSION).then(function(cache){cache.put(e.request,copy);});}",
+      "return res;",
+      "});",
+      "}));",
+      "return;",
+      "}",
+      "e.respondWith(fetch(e.request).catch(function(){return caches.match(e.request);}));",
+      "});"
+    ].join("");
+  }
+
+  function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) {
+      return Promise.resolve();
+    }
+
+    var source = getServiceWorkerSource();
+    var blob = new Blob([source], { type: "application/javascript" });
+    var swUrl = URL.createObjectURL(blob);
+
+    return navigator.serviceWorker
+      .register(swUrl, { scope: "/" })
+      .then(function (reg) {
+        console.log("[GO Match PWA] Service worker registered", reg.scope);
+        return reg;
+      })
+      .catch(function (err) {
+        console.warn("[GO Match PWA] Service worker:", err);
+      })
+      .finally(function () {
+        try {
+          URL.revokeObjectURL(swUrl);
+        } catch (e) {}
+      });
+  }
+
+  function setThemeColorMeta() {
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute("content", PWA.themeColor);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", function () {
+      setThemeColorMeta();
+      loadManifest();
+      registerServiceWorker();
+    });
+  } else {
+    setThemeColorMeta();
+    loadManifest();
+    registerServiceWorker();
+  }
+})();
+//]]>
+</script>
+
+</b:if>
+<!-- ========== END BLOCK B ========== -->
