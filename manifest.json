@@ -1,19 +1,19 @@
 {
   "name": "GO Match",
   "short_name": "GO",
-  "start_url": "/?utm_source=pwa",
+  "start_url": "https://github.com/tarekk190/GO-Match-Blogger.git",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#241A78",
+  "theme_color": "#241A78",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "رابط_الصورة_بمقاس_192.png",
+      "src": "https://github.com/tarekk190/GO-Match-Blogger.git/icons/GO Match LOOG PNG 192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "رابط_الصورة_بمقاس_512.png",
+      "src": "https://github.com/tarekk190/GO-Match-Blogger.git/icons/GO Match LOOG PNG 512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
