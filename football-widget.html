@@ -1,0 +1,773 @@
+<!--
+  ╔══════════════════════════════════════════════════════════════════════╗
+  ║        GO Match — Football Live Widget  (Blogger-ready)             ║
+  ║  Paste the entire contents of this file into a Blogger HTML gadget  ║
+  ╚══════════════════════════════════════════════════════════════════════╝
+-->
+<style>
+  /* ─── Reset / Base ─────────────────────────────────────────────────── */
+  #gm-widget *,
+  #gm-widget *::before,
+  #gm-widget *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  #gm-widget {
+    --clr-bg:        #060709;
+    --clr-card:      #0f1117;
+    --clr-card2:     #161b24;
+    --clr-border:    #1e2530;
+    --clr-green:     #00ff66;
+    --clr-green-dim: #00cc55;
+    --clr-red:       #ff3b5c;
+    --clr-amber:     #ffb400;
+    --clr-blue:      #3d9bff;
+    --clr-text:      #e8eaf0;
+    --clr-muted:     #6b7280;
+    --clr-muted2:    #4b5563;
+    --radius:        12px;
+    --radius-sm:     8px;
+    --transition:    0.25s cubic-bezier(.4,0,.2,1);
+
+    font-family: 'Cairo', 'Segoe UI', system-ui, sans-serif;
+    background: var(--clr-bg);
+    color: var(--clr-text);
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 12px;
+    border-radius: var(--radius);
+    direction: ltr;
+  }
+
+  /* ─── Header ────────────────────────────────────────────────────────── */
+  .gm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 2px 14px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .gm-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .gm-logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--clr-green), #00cc88);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .gm-logo-text {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    background: linear-gradient(90deg, var(--clr-green), #00aaff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .gm-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .gm-date-badge {
+    background: var(--clr-card2);
+    border: 1px solid var(--clr-border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--clr-muted);
+    font-weight: 600;
+    letter-spacing: .4px;
+  }
+  .gm-refresh-btn {
+    background: var(--clr-card2);
+    border: 1px solid var(--clr-border);
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--clr-muted);
+    font-size: 14px;
+    transition: all var(--transition);
+    outline: none;
+  }
+  .gm-refresh-btn:hover { color: var(--clr-green); border-color: var(--clr-green); }
+  .gm-refresh-btn.spinning svg { animation: gm-spin .7s linear infinite; }
+  @keyframes gm-spin { to { transform: rotate(360deg); } }
+
+  /* ─── Tabs ───────────────────────────────────────────────────────────── */
+  .gm-tabs {
+    display: flex;
+    background: var(--clr-card);
+    border: 1px solid var(--clr-border);
+    border-radius: 50px;
+    padding: 4px;
+    gap: 2px;
+    margin-bottom: 14px;
+  }
+  .gm-tab {
+    flex: 1;
+    padding: 8px 6px;
+    border: none;
+    background: transparent;
+    color: var(--clr-muted);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .4px;
+    border-radius: 40px;
+    cursor: pointer;
+    transition: all var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+    outline: none;
+  }
+  .gm-tab:hover:not(.active) { color: var(--clr-text); background: var(--clr-card2); }
+  .gm-tab.active {
+    background: linear-gradient(135deg, var(--clr-green), #00cc77);
+    color: #060709;
+    box-shadow: 0 2px 12px rgba(0,255,102,.3);
+  }
+  .gm-tab .gm-count {
+    background: rgba(0,0,0,.25);
+    border-radius: 10px;
+    font-size: 10px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+  }
+  .gm-tab.active .gm-count { background: rgba(0,0,0,.2); }
+  .gm-live-dot {
+    width: 7px; height: 7px;
+    background: var(--clr-red);
+    border-radius: 50%;
+    animation: gm-pulse 1.2s ease-in-out infinite;
+    flex-shrink: 0;
+  }
+  .gm-tab.active .gm-live-dot { background: #060709; }
+  @keyframes gm-pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .5; transform: scale(.7); }
+  }
+
+  /* ─── Content Area ───────────────────────────────────────────────────── */
+  .gm-content { position: relative; min-height: 140px; }
+  .gm-panel { display: none; animation: gm-fadeIn .3s ease; }
+  .gm-panel.active { display: block; }
+  @keyframes gm-fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+
+  /* ─── State messages ─────────────────────────────────────────────────── */
+  .gm-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    gap: 12px;
+    color: var(--clr-muted);
+    text-align: center;
+  }
+  .gm-state-icon { font-size: 38px; line-height: 1; }
+  .gm-state-title { font-size: 14px; font-weight: 700; color: var(--clr-text); }
+  .gm-state-sub   { font-size: 12px; line-height: 1.5; }
+  .gm-error-badge {
+    background: rgba(255,59,92,.1);
+    border: 1px solid rgba(255,59,92,.3);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--clr-red);
+    font-weight: 600;
+    max-width: 320px;
+  }
+
+  /* ─── Loading skeleton ───────────────────────────────────────────────── */
+  .gm-skeleton-list { display: flex; flex-direction: column; gap: 8px; }
+  .gm-skeleton-card {
+    background: var(--clr-card);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius);
+    padding: 16px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .gm-skel {
+    background: linear-gradient(90deg, var(--clr-card2) 25%, #1e2530 50%, var(--clr-card2) 75%);
+    background-size: 400% 100%;
+    animation: gm-shimmer 1.5s ease infinite;
+    border-radius: 6px;
+  }
+  @keyframes gm-shimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+  .gm-skel-row { display: flex; align-items: center; gap: 10px; }
+
+  /* ─── League Header ──────────────────────────────────────────────────── */
+  .gm-league-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 4px 6px;
+    margin-top: 4px;
+  }
+  .gm-league-header:first-child { margin-top: 0; padding-top: 4px; }
+  .gm-league-emblem {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    object-fit: contain;
+    background: var(--clr-card2);
+    flex-shrink: 0;
+  }
+  .gm-league-emblem-fallback {
+    width: 22px; height: 22px;
+    background: var(--clr-card2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .gm-league-name {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--clr-muted);
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .gm-league-line {
+    flex: 1;
+    height: 1px;
+    background: var(--clr-border);
+  }
+
+  /* ─── Match Card ─────────────────────────────────────────────────────── */
+  .gm-match-card {
+    background: var(--clr-card);
+    border: 1px solid var(--clr-border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 8px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 8px;
+    transition: border-color var(--transition), transform var(--transition), box-shadow var(--transition);
+    position: relative;
+    overflow: hidden;
+  }
+  .gm-match-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity var(--transition);
+    background: linear-gradient(135deg, rgba(0,255,102,.03), transparent);
+  }
+  .gm-match-card:hover { border-color: var(--clr-border); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,0,0,.4); }
+  .gm-match-card:hover::before { opacity: 1; }
+  .gm-match-card.is-live {
+    border-color: rgba(255,59,92,.35);
+    background: linear-gradient(135deg, rgba(255,59,92,.04), var(--clr-card));
+  }
+  .gm-match-card.is-live::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--clr-red), transparent);
+  }
+
+  /* Team column */
+  .gm-team { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .gm-team-badge-wrap {
+    width: 42px; height: 42px;
+    background: var(--clr-card2);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+    border: 1.5px solid var(--clr-border);
+    flex-shrink: 0;
+    transition: border-color var(--transition);
+  }
+  .gm-match-card.is-live .gm-team-badge-wrap { border-color: rgba(255,59,92,.25); }
+  .gm-team-badge {
+    width: 28px; height: 28px;
+    object-fit: contain;
+  }
+  .gm-team-badge-fallback { font-size: 18px; }
+  .gm-team-name {
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--clr-text);
+    line-height: 1.3;
+    max-width: 90px;
+    word-break: break-word;
+  }
+
+  /* Center column */
+  .gm-center { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .gm-score {
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    color: var(--clr-text);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .gm-score .gm-score-dash { color: var(--clr-muted2); font-weight: 400; }
+  .gm-status-badge {
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .gm-status-live    { background: rgba(255,59,92,.15); color: var(--clr-red);   border: 1px solid rgba(255,59,92,.3); }
+  .gm-status-ft      { background: rgba(107,114,128,.1);color: var(--clr-muted); border: 1px solid var(--clr-border); }
+  .gm-status-ns      { background: rgba(61,155,255,.1); color: var(--clr-blue);  border: 1px solid rgba(61,155,255,.25); }
+  .gm-status-pp      { background: rgba(255,180,0,.1);  color: var(--clr-amber); border: 1px solid rgba(255,180,0,.25); }
+  .gm-kickoff {
+    font-size: 11px;
+    color: var(--clr-muted);
+    font-weight: 600;
+    letter-spacing: .3px;
+  }
+  .gm-live-min {
+    font-size: 10px;
+    color: var(--clr-red);
+    font-weight: 800;
+    letter-spacing: .4px;
+    animation: gm-blink 2s ease infinite;
+  }
+  @keyframes gm-blink { 0%,100%{opacity:1} 50%{opacity:.5} }
+
+  /* ─── Auto-refresh footer ────────────────────────────────────────────── */
+  .gm-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 14px 4px 2px;
+    font-size: 10px;
+    color: var(--clr-muted2);
+    letter-spacing: .3px;
+  }
+  .gm-footer-dot {
+    width: 6px; height: 6px;
+    background: var(--clr-green);
+    border-radius: 50%;
+    animation: gm-pulse 2s ease infinite;
+    flex-shrink: 0;
+  }
+  .gm-countdown { font-weight: 700; color: var(--clr-muted); }
+
+  /* ─── Responsive tweaks ──────────────────────────────────────────────── */
+  @media (max-width: 360px) {
+    .gm-team-name  { font-size: 11px; max-width: 72px; }
+    .gm-score      { font-size: 20px; }
+    .gm-team-badge-wrap { width: 36px; height: 36px; }
+    .gm-tab        { font-size: 11px; padding: 8px 4px; }
+  }
+</style>
+
+<div id="gm-widget">
+
+  <!-- Header -->
+  <div class="gm-header">
+    <div class="gm-logo">
+      <div class="gm-logo-icon">⚽</div>
+      <span class="gm-logo-text">GO Match</span>
+    </div>
+    <div class="gm-meta">
+      <span class="gm-date-badge" id="gm-date-label">Loading…</span>
+      <button class="gm-refresh-btn" id="gm-refresh-btn" title="Refresh now" aria-label="Refresh">
+        <svg id="gm-refresh-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+          <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="gm-tabs" role="tablist">
+    <button class="gm-tab" id="gm-tab-live" role="tab" aria-controls="gm-panel-live" data-tab="live">
+      <span class="gm-live-dot"></span>
+      <span>LIVE</span>
+      <span class="gm-count" id="gm-count-live">0</span>
+    </button>
+    <button class="gm-tab active" id="gm-tab-today" role="tab" aria-controls="gm-panel-today" data-tab="today">
+      <span>TODAY</span>
+      <span class="gm-count" id="gm-count-today">0</span>
+    </button>
+    <button class="gm-tab" id="gm-tab-finished" role="tab" aria-controls="gm-panel-finished" data-tab="finished">
+      <span>FINISHED</span>
+      <span class="gm-count" id="gm-count-finished">0</span>
+    </button>
+  </div>
+
+  <!-- Content -->
+  <div class="gm-content">
+    <div class="gm-panel" id="gm-panel-live" role="tabpanel"></div>
+    <div class="gm-panel active" id="gm-panel-today" role="tabpanel"></div>
+    <div class="gm-panel" id="gm-panel-finished" role="tabpanel"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="gm-footer">
+    <span class="gm-footer-dot"></span>
+    <span>Auto-refresh in</span>
+    <span class="gm-countdown" id="gm-countdown">60s</span>
+    <span>· football-data.org</span>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ──────────────────────────────────────────────────────────────────────
+     CONFIGURATION — replace with your real token
+  ────────────────────────────────────────────────────────────────────── */
+  const API_KEY       = '7f5cd29acc554fa8a4c1897bdde8d725';
+  const API_BASE      = 'https://api.football-data.org/v4';
+  const CACHE_KEY     = 'gm_matches_cache';
+  const CACHE_TTL_MS  = 3 * 60 * 1000;   // 3 minutes
+  const REFRESH_SEC   = 60;               // auto-refresh interval
+
+  /* ──────────────────────────────────────────────────────────────────────
+     STATE
+  ────────────────────────────────────────────────────────────────────── */
+  let allMatches   = [];
+  let activeTab    = 'today';
+  let countdownVal = REFRESH_SEC;
+  let countdownTimer, refreshTimer;
+
+  /* ──────────────────────────────────────────────────────────────────────
+     DOM REFS
+  ────────────────────────────────────────────────────────────────────── */
+  const $ = id => document.getElementById(id);
+  const panelLive      = $('gm-panel-live');
+  const panelToday     = $('gm-panel-today');
+  const panelFinished  = $('gm-panel-finished');
+  const countLive      = $('gm-count-live');
+  const countToday     = $('gm-count-today');
+  const countFinished  = $('gm-count-finished');
+  const dateLbl        = $('gm-date-label');
+  const refreshBtn     = $('gm-refresh-btn');
+  const refreshIcon    = $('gm-refresh-icon');
+  const countdownEl    = $('gm-countdown');
+
+  /* ──────────────────────────────────────────────────────────────────────
+     UTILITIES
+  ────────────────────────────────────────────────────────────────────── */
+  function todayISO() {
+    const d = new Date();
+    return d.toISOString().split('T')[0];
+  }
+
+  function formatDate(iso) {
+    try {
+      return new Date(iso).toLocaleDateString('en-GB', { weekday:'short', day:'numeric', month:'short' });
+    } catch { return iso; }
+  }
+
+  function formatKickoff(utcDate) {
+    if (!utcDate) return '—';
+    try {
+      return new Date(utcDate).toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+    } catch { return utcDate; }
+  }
+
+  function statusLabel(status) {
+    const map = {
+      'IN_PLAY':    { text: '● LIVE',   cls: 'gm-status-live' },
+      'PAUSED':     { text: '⏸ HT',    cls: 'gm-status-live' },
+      'HALFTIME':   { text: '⏸ HT',    cls: 'gm-status-live' },
+      'FINISHED':   { text: '✓ FT',    cls: 'gm-status-ft'   },
+      'AWARDED':    { text: '✓ AW',    cls: 'gm-status-ft'   },
+      'TIMED':      { text: '◷ NS',    cls: 'gm-status-ns'   },
+      'SCHEDULED':  { text: '◷ NS',    cls: 'gm-status-ns'   },
+      'POSTPONED':  { text: '↺ PP',    cls: 'gm-status-pp'   },
+      'CANCELLED':  { text: '✕ CANC',  cls: 'gm-status-pp'   },
+      'SUSPENDED':  { text: '⊘ SUSP',  cls: 'gm-status-pp'   },
+    };
+    return map[status] || { text: status || '—', cls: 'gm-status-ns' };
+  }
+
+  function isLive(s) { return s === 'IN_PLAY' || s === 'PAUSED' || s === 'HALFTIME'; }
+  function isFinished(s) { return s === 'FINISHED' || s === 'AWARDED'; }
+
+  function safe(val, fallback = '—') { return val !== null && val !== undefined ? val : fallback; }
+
+  /* ──────────────────────────────────────────────────────────────────────
+     CACHE
+  ────────────────────────────────────────────────────────────────────── */
+  function readCache() {
+    try {
+      const raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      const { ts, data } = JSON.parse(raw);
+      if (Date.now() - ts < CACHE_TTL_MS) return data;
+    } catch {}
+    return null;
+  }
+
+  function writeCache(data) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data })); } catch {}
+  }
+
+  /* ──────────────────────────────────────────────────────────────────────
+     API FETCH
+  ────────────────────────────────────────────────────────────────────── */
+  async function fetchMatches(forceRefresh = false) {
+    if (!forceRefresh) {
+      const cached = readCache();
+      if (cached) { return cached; }
+    }
+    const today = todayISO();
+    const url   = `${API_BASE}/matches?dateFrom=${today}&dateTo=${today}`;
+    const res   = await fetch(url, {
+      headers: { 'X-Auth-Token': API_KEY }
+    });
+    if (!res.ok) throw new Error(`API error ${res.status}: ${res.statusText}`);
+    const json = await res.json();
+    const matches = json.matches || [];
+    writeCache(matches);
+    return matches;
+  }
+
+  /* ──────────────────────────────────────────────────────────────────────
+     RENDER HELPERS
+  ────────────────────────────────────────────────────────────────────── */
+  function badgeHTML(team, side) {
+    const crest = team && team.crest;
+    const name  = (team && team.shortName) || (team && team.name) || '?';
+    const abbr  = name.substring(0,3).toUpperCase();
+    return `
+      <div class="gm-team" style="${side==='away'?'':''}">
+        <div class="gm-team-badge-wrap">
+          ${crest
+            ? `<img class="gm-team-badge" src="${crest}" alt="${name}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+            : ''}
+          <div class="gm-team-badge-fallback" style="${crest?'display:none':''}">⚽</div>
+        </div>
+        <span class="gm-team-name">${name}</span>
+      </div>`;
+  }
+
+  function scoreHTML(match) {
+    const s = match.score;
+    if (!s) return '<span class="gm-score"><span class="gm-score-dash">vs</span></span>';
+    const hg = s.fullTime && s.fullTime.home !== null ? s.fullTime.home : (s.halfTime && s.halfTime.home !== null ? s.halfTime.home : null);
+    const ag = s.fullTime && s.fullTime.away !== null ? s.fullTime.away : (s.halfTime && s.halfTime.away !== null ? s.halfTime.away : null);
+    if (hg === null) return '<span class="gm-score"><span class="gm-score-dash">vs</span></span>';
+    return `<span class="gm-score">${hg} <span class="gm-score-dash">:</span> ${ag}</span>`;
+  }
+
+  function minuteHTML(match) {
+    if (!isLive(match.status)) return '';
+    const min = match.minute || (match.score && match.score.duration ? '' : '');
+    return min ? `<span class="gm-live-min">${min}'</span>` : '<span class="gm-live-min">●</span>';
+  }
+
+  function matchCardHTML(match) {
+    const live    = isLive(match.status);
+    const st      = statusLabel(match.status);
+    const kickoff = formatKickoff(match.utcDate);
+    return `
+      <div class="gm-match-card${live ? ' is-live' : ''}">
+        ${badgeHTML(match.homeTeam, 'home')}
+        <div class="gm-center">
+          ${scoreHTML(match)}
+          <span class="gm-status-badge ${st.cls}">${st.text}</span>
+          ${minuteHTML(match)}
+          ${!live ? `<span class="gm-kickoff">${kickoff}</span>` : ''}
+        </div>
+        ${badgeHTML(match.awayTeam, 'away')}
+      </div>`;
+  }
+
+  function leagueGroupHTML(competitionName, competitionEmblem, matches) {
+    const abbr = (competitionName || 'LEA').substring(0,3).toUpperCase();
+    const emblem = competitionEmblem
+      ? `<img class="gm-league-emblem" src="${competitionEmblem}" alt="${competitionName}" loading="lazy" onerror="this.style.display='none'">`
+      : `<div class="gm-league-emblem-fallback">🏆</div>`;
+    const cards = matches.map(matchCardHTML).join('');
+    return `
+      <div class="gm-league-header">
+        ${emblem}
+        <span class="gm-league-name">${competitionName || 'League'}</span>
+        <div class="gm-league-line"></div>
+      </div>
+      ${cards}`;
+  }
+
+  function groupByLeague(matches) {
+    const map = new Map();
+    for (const m of matches) {
+      const id   = m.competition && m.competition.id   || 'unknown';
+      const name = m.competition && m.competition.name || 'League';
+      const embl = m.competition && m.competition.emblem || null;
+      if (!map.has(id)) map.set(id, { name, emblem: embl, matches: [] });
+      map.get(id).matches.push(m);
+    }
+    return map;
+  }
+
+  function renderMatches(container, matches, emptyMsg, emptyIcon) {
+    if (!matches.length) {
+      container.innerHTML = `
+        <div class="gm-state">
+          <div class="gm-state-icon">${emptyIcon}</div>
+          <div class="gm-state-title">${emptyMsg}</div>
+          <div class="gm-state-sub">Check back later.</div>
+        </div>`;
+      return;
+    }
+    const grouped = groupByLeague(matches);
+    let html = '';
+    for (const [, { name, emblem, matches: ms }] of grouped) {
+      html += leagueGroupHTML(name, emblem, ms);
+    }
+    container.innerHTML = html;
+  }
+
+  function showSkeleton(container) {
+    const cards = Array(3).fill(0).map(() => `
+      <div class="gm-skeleton-card">
+        <div class="gm-skel-row">
+          <div class="gm-skel" style="width:42px;height:42px;border-radius:50%"></div>
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+            <div class="gm-skel" style="height:12px;width:70%"></div>
+            <div class="gm-skel" style="height:10px;width:45%"></div>
+          </div>
+          <div class="gm-skel" style="width:52px;height:22px;border-radius:6px"></div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+            <div class="gm-skel" style="height:12px;width:70%"></div>
+            <div class="gm-skel" style="height:10px;width:45%"></div>
+          </div>
+          <div class="gm-skel" style="width:42px;height:42px;border-radius:50%"></div>
+        </div>
+      </div>`).join('');
+    container.innerHTML = `<div class="gm-skeleton-list">${cards}</div>`;
+  }
+
+  function showError(msg) {
+    const errHTML = `
+      <div class="gm-state">
+        <div class="gm-state-icon">⚠️</div>
+        <div class="gm-state-title">Could not load matches</div>
+        <div class="gm-error-badge">${msg}</div>
+      </div>`;
+    panelLive.innerHTML = panelToday.innerHTML = panelFinished.innerHTML = errHTML;
+  }
+
+  /* ──────────────────────────────────────────────────────────────────────
+     MAIN RENDER
+  ────────────────────────────────────────────────────────────────────── */
+  function renderAll(matches) {
+    const live     = matches.filter(m => isLive(m.status));
+    const finished = matches.filter(m => isFinished(m.status));
+    const today    = matches;     // all of today (includes live + finished + upcoming)
+
+    countLive.textContent     = live.length;
+    countToday.textContent    = today.length;
+    countFinished.textContent = finished.length;
+
+    renderMatches(panelLive,     live,     'No live matches right now', '📡');
+    renderMatches(panelToday,    today,    'No matches scheduled today', '📅');
+    renderMatches(panelFinished, finished, 'No finished matches yet',   '🏁');
+  }
+
+  /* ──────────────────────────────────────────────────────────────────────
+     LOAD DATA
+  ────────────────────────────────────────────────────────────────────── */
+  async function load(force = false) {
+    if (force) {
+      showSkeleton(panelLive);
+      showSkeleton(panelToday);
+      showSkeleton(panelFinished);
+    }
+    try {
+      allMatches = await fetchMatches(force);
+      renderAll(allMatches);
+    } catch (err) {
+      console.error('[GO Match]', err);
+      showError(err.message || 'Unknown error');
+    }
+  }
+
+  /* ──────────────────────────────────────────────────────────────────────
+     TABS
+  ────────────────────────────────────────────────────────────────────── */
+  function switchTab(tab) {
+    activeTab = tab;
+    ['live','today','finished'].forEach(t => {
+      $(`gm-tab-${t}`).classList.toggle('active', t === tab);
+      $(`gm-panel-${t}`).classList.toggle('active', t === tab);
+    });
+  }
+
+  ['live','today','finished'].forEach(t => {
+    $(`gm-tab-${t}`).addEventListener('click', () => switchTab(t));
+  });
+
+  /* ──────────────────────────────────────────────────────────────────────
+     AUTO-REFRESH + COUNTDOWN
+  ────────────────────────────────────────────────────────────────────── */
+  function startCountdown() {
+    clearInterval(countdownTimer);
+    countdownVal = REFRESH_SEC;
+    countdownEl.textContent = countdownVal + 's';
+    countdownTimer = setInterval(() => {
+      countdownVal--;
+      countdownEl.textContent = countdownVal + 's';
+      if (countdownVal <= 0) {
+        clearInterval(countdownTimer);
+        triggerRefresh(false);
+      }
+    }, 1000);
+  }
+
+  function triggerRefresh(force) {
+    refreshBtn.classList.add('spinning');
+    load(force).finally(() => {
+      refreshBtn.classList.remove('spinning');
+      startCountdown();
+    });
+  }
+
+  refreshBtn.addEventListener('click', () => triggerRefresh(true));
+
+  /* ──────────────────────────────────────────────────────────────────────
+     INIT
+  ────────────────────────────────────────────────────────────────────── */
+  dateLbl.textContent = formatDate(todayISO());
+  showSkeleton(panelToday);
+
+  // Try cache first, no skeleton flash if cache is warm
+  const cached = readCache();
+  if (cached) {
+    allMatches = cached;
+    renderAll(cached);
+  } else {
+    showSkeleton(panelLive);
+    showSkeleton(panelToday);
+    showSkeleton(panelFinished);
+  }
+
+  load(false).finally(() => startCountdown());
+
+})();
+</script>

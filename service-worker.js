@@ -1,5 +1,5 @@
 /* GO Match PWA — hosted on GitHub Pages (optional external copy) */
-const CACHE_VERSION = "gomatch-pwa-v2";
+const CACHE_VERSION = "gomatch-pwa-v3";
 const PRECACHE_URLS = [
   "https://tarekk190.github.io/GO-Match-Blogger/icons/icon-192.png",
   "https://tarekk190.github.io/GO-Match-Blogger/icons/icon-512.png",
